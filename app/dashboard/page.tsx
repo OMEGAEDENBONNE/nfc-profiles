@@ -84,18 +84,32 @@ export default function DashboardPage() {
     async function goPro() {
         if (!profile.username || !userId) return;
 
-        setStatus("Redirection vers Stripe...");
+        try {
+            setStatus("Redirection vers Stripe...");
 
-        const res = await fetch("/api/stripe/checkout", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username: profile.username, owner_id: userId }),
-        });
+            const res = await fetch("/api/stripe/checkout", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: profile.username, owner_id: userId }),
+            });
 
-        const data = await res.json();
-        if (data.url) window.location.href = data.url;
-        else setStatus(`❌ ${data.error || "Erreur checkout"}`);
+            const data = await res.json();
+
+            if (!res.ok) {
+                setStatus(`❌ ${data.error || "Erreur checkout"}`);
+                return;
+            }
+
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                setStatus("❌ Pas d'URL Stripe reçue");
+            }
+        } catch (err: any) {
+            setStatus(`❌ ${err?.message || "Erreur réseau"}`);
+        }
     }
+
 
     async function logout() {
         await supabaseBrowser.auth.signOut();
