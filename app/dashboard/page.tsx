@@ -30,6 +30,7 @@ export default function DashboardPage() {
 
     useEffect(() => {
         if (!userId) return;
+
         (async () => {
             const { data, error } = await supabaseBrowser
                 .from("profiles")
@@ -45,7 +46,7 @@ export default function DashboardPage() {
         if (!userId) return;
         setStatus("Sauvegarde...");
 
-        // Si pas encore de profil → create
+        // Create
         if (!profile.id) {
             const { error } = await supabaseBrowser.from("profiles").insert({
                 username: profile.username,
@@ -64,7 +65,7 @@ export default function DashboardPage() {
             return;
         }
 
-        // Sinon → update
+        // Update
         const { error } = await supabaseBrowser
             .from("profiles")
             .update({
@@ -72,12 +73,28 @@ export default function DashboardPage() {
                 phone: profile.phone,
                 whatsapp: profile.whatsapp,
                 website: profile.website,
-                Email: profile.email,
+                email: profile.email, // ✅ minuscule
                 bio: profile.bio,
             })
             .eq("id", profile.id);
 
         setStatus(error ? `❌ ${error.message}` : "✅ Profil mis à jour");
+    }
+
+    async function goPro() {
+        if (!profile.username || !userId) return;
+
+        setStatus("Redirection vers Stripe...");
+
+        const res = await fetch("/api/stripe/checkout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: profile.username, owner_id: userId }),
+        });
+
+        const data = await res.json();
+        if (data.url) window.location.href = data.url;
+        else setStatus(`❌ ${data.error || "Erreur checkout"}`);
     }
 
     async function logout() {
@@ -99,7 +116,13 @@ export default function DashboardPage() {
     return (
         <main style={{ padding: 24, maxWidth: 520, margin: "0 auto", fontFamily: "system-ui" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <h1>Dashboard</h1>
+                <div>
+                    <h1 style={{ margin: 0 }}>Dashboard</h1>
+                    <p style={{ margin: "6px 0 0", opacity: 0.7 }}>
+                        Plan: <b>{profile.plan ?? "free"}</b>
+                    </p>
+                </div>
+
                 <button onClick={logout} style={{ padding: 10, borderRadius: 10 }}>
                     Déconnexion
                 </button>
@@ -141,13 +164,13 @@ export default function DashboardPage() {
                 onChange={(e) => setProfile({ ...profile, website: e.target.value })}
                 style={inp}
             />
+
             <label>Email</label>
             <input
                 value={profile.email ?? ""}
                 onChange={(e) => setProfile({ ...profile, email: e.target.value })}
                 style={inp}
             />
-
 
             <label>Bio</label>
             <textarea
@@ -156,7 +179,25 @@ export default function DashboardPage() {
                 style={{ ...inp, height: 90 }}
             />
 
-            <button onClick={save} style={{ marginTop: 12, padding: 12, width: "100%", borderRadius: 10 }}>
+            <button
+                onClick={goPro}
+                disabled={!profile.username || profile.plan === "pro"}
+                style={{
+                    marginTop: 12,
+                    padding: 12,
+                    width: "100%",
+                    borderRadius: 10,
+                    opacity: !profile.username || profile.plan === "pro" ? 0.6 : 1,
+                    cursor: !profile.username || profile.plan === "pro" ? "not-allowed" : "pointer",
+                }}
+            >
+                {profile.plan === "pro" ? "✅ Déjà activé" : "Activer (paiement)"}
+            </button>
+
+            <button
+                onClick={save}
+                style={{ marginTop: 12, padding: 12, width: "100%", borderRadius: 10 }}
+            >
                 Sauvegarder
             </button>
 
