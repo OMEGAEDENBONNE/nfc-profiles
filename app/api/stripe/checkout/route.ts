@@ -5,7 +5,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
     apiVersion: "2025-01-27.acacia",
 });
 
-const PRICE_ID = "prod_TvFpw9iDfBbM3T"; // <-- à remplacer par ton Price Stripe (paiement unique)
+const PRICE_ID = "price_1SxPJRRz68iaqbgtoQ7fz4tn"; // <-- à remplacer par ton Price Stripe (paiement unique)
 
 export async function POST(req: Request) {
     const { username, owner_id } = await req.json();
