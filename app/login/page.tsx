@@ -51,7 +51,7 @@ export default function LoginPage() {
             }}
         >
             <h1>Connexion</h1>
-            <p>Entre ton email, tu recevras un lien de connexion.e</p>
+            <p>Entre ton email, tu recevras un lien de connexion.</p>
 
             <input
                 type="email"

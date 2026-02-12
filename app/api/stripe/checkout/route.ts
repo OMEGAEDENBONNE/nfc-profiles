@@ -1,5 +1,6 @@
 ﻿import Stripe from "stripe";
-import { supabaseAdmin } from "../../../../lib/supabaseAdmin";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
